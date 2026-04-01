@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Scan Session{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h4>QR Scan Attendance</h4>
+                <p class="mb-1"><strong>Class:</strong> {{ session.title }}</p>
+                <p class="text-muted small mb-1">Room: {{ session.room }} | Radius: {{ session.radius_meters }}m</p>
+                <p class="text-muted small mb-3">Entry window: {{ entry_window_minutes }} minutes from session start</p>
+                <div id="scanSessionResult" class="small mb-3 text-muted">
+                    {% if scan_window_expired %}
+                        <div class="alert alert-warning">
+                            <strong>⏰ Entry Window Expired</strong><br>
+                            QR entry time window has expired. Please contact your teacher to restart the session.
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <strong>📍 Ready to Mark Attendance</strong><br>
+                            Click the button below to mark your attendance. Location permission may be requested.
+                        </div>
+                    {% endif %}
+                </div>
+                <button
+                    id="markSessionAttendanceBtn"
+                    class="btn btn-primary w-100"
+                    data-session-id="{{ session.id }}"
+                    {% if scan_window_expired %}disabled{% endif %}
+                >
+                    Retry Attendance Mark
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

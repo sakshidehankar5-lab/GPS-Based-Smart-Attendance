@@ -1,0 +1,201 @@
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 1: Student Scans QR Code                               │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ • Student opens scan link                               │ │
+│ │ • Clicks "Mark Attendance"                              │ │
+│ │ • Location sent to server                               │ │
+│ │ • ✅ Attendance Record Created                          │ │
+│ │ • localStorage saves: activeSessionId                   │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 2: Automatic Background Tracking Starts                │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ initPresenceLoop() - Runs on EVERY page                │ │
+│ │                                                          │ │
+│ │ Every 45 seconds:                                       │ │
+│ │   1. Get current GPS location                          │ │
+│ │   2. Send to: POST /api/presence/{session_id}          │ │
+│ │   3. Server calculates distance                        │ │
+│ │   4. Updates last_seen_at                              │ │
+│ │   5. Creates PresencePing record                       │ │
+│ │   6. Calculates total_minutes                          │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 3: Continuous Monitoring                               │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ ✅ Student Dashboard pe ho                              │ │
+│ │ ✅ History page pe ho                                   │ │
+│ │ ✅ Kisi bhi page pe ho                                  │ │
+│ │ ✅ Background mein tracking chalti rahegi               │ │
+│ │                                                          │ │
+│ │ Database Updates:                                       │ │
+│ │ • last_seen_at: 2024-01-15 10:45:30                    │ │
+│ │ • total_minutes: 45.5 (auto-calculated)                │ │
+│ │ • status: "in_class"                                    │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 4: Auto-Exit (If Needed)                              │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ Condition 1: Student leaves classroom                  │ │
+│ │   → Distance > radius_meters                           │ │
+│ │   → Auto exit: "exit_out_of_radius"                    │ │
+│ │                                                          │ │
+│ │ Condition 2: No ping for 5 minutes                     │ │
+│ │   → Phone off / Browser closed                         │ │
+│ │   → Auto exit: "exit_inactive"                         │ │
+│ │                                                          │ │
+│ │ Condition 3: Teacher ends session                      │ │
+│ │   → Session closed                                      │ │
+│ │   → Auto exit: "exit_session_end"                      │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+
+
+
+Haan bilkul! Scan karne ke baad automatic presence tracking start ho jati hai. Let me explain the complete flow:
+
+## 🔄 Automatic Re-Attendance (Presence Tracking) Flow
+
+### 1️⃣ **Initial Scan (Entry)**
+```
+Student scans QR → Attendance marked → Entry recorded
+```
+
+### 2️⃣ **Automatic Background Tracking Starts**
+```javascript
+// app/static/js/main.js
+// Automatically runs every 45 seconds
+setInterval(tick, 45000);
+```
+
+**Yeh automatically hota hai:**
+- ✅ Har 45 seconds mein student ka location check hota hai
+- ✅ Server ko presence ping bhejta hai
+- ✅ `last_seen_at` update hota hai
+- ✅ `PresencePing` record create hota hai
+- ✅ Total minutes calculate hote rehte hain
+
+### 3️⃣ **Auto-Exit Conditions**
+```python
+# Agar student radius se bahar chala jaye
+if distance > radius_meters:
+    record.close("exit_out_of_radius")
+
+# Agar 5 minutes tak ping nahi aayi
+if last_seen > 5 minutes ago:
+    record.close("exit_inactive")
+```
+
+Let me verify the presence tracking code is working properly:
+
+Perfect! System already properly configured hai. Let me verify the DOMContentLoaded event that starts everything:
+
+Perfect! ✅ Sab kuch already properly configured hai. Let me create a visual diagram to explain:
+
+## ✅ Automatic Re-Attendance System - Already Working!
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 1: Student Scans QR Code                               │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ • Student opens scan link                               │ │
+│ │ • Clicks "Mark Attendance"                              │ │
+│ │ • Location sent to server                               │ │
+│ │ • ✅ Attendance Record Created                          │ │
+│ │ • localStorage saves: activeSessionId                   │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 2: Automatic Background Tracking Starts                │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ initPresenceLoop() - Runs on EVERY page                │ │
+│ │                                                          │ │
+│ │ Every 45 seconds:                                       │ │
+│ │   1. Get current GPS location                          │ │
+│ │   2. Send to: POST /api/presence/{session_id}          │ │
+│ │   3. Server calculates distance                        │ │
+│ │   4. Updates last_seen_at                              │ │
+│ │   5. Creates PresencePing record                       │ │
+│ │   6. Calculates total_minutes                          │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 3: Continuous Monitoring                               │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ ✅ Student Dashboard pe ho                              │ │
+│ │ ✅ History page pe ho                                   │ │
+│ │ ✅ Kisi bhi page pe ho                                  │ │
+│ │ ✅ Background mein tracking chalti rahegi               │ │
+│ │                                                          │ │
+│ │ Database Updates:                                       │ │
+│ │ • last_seen_at: 2024-01-15 10:45:30                    │ │
+│ │ • total_minutes: 45.5 (auto-calculated)                │ │
+│ │ • status: "in_class"                                    │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 4: Auto-Exit (If Needed)                              │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ Condition 1: Student leaves classroom                  │ │
+│ │   → Distance > radius_meters                           │ │
+│ │   → Auto exit: "exit_out_of_radius"                    │ │
+│ │                                                          │ │
+│ │ Condition 2: No ping for 5 minutes                     │ │
+│ │   → Phone off / Browser closed                         │ │
+│ │   → Auto exit: "exit_inactive"                         │ │
+│ │                                                          │ │
+│ │ Condition 3: Teacher ends session                      │ │
+│ │   → Session closed                                      │ │
+│ │   → Auto exit: "exit_session_end"                      │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## 🎯 Key Points for Presentation:
+
+### ✅ **Automatic Features (No Manual Work Needed):**
+
+1. **Scan Once, Track Forever**
+   - Student sirf ek baar scan karta hai
+   - Uske baad automatic tracking start
+
+2. **Background Tracking**
+   - Har 45 seconds mein location check
+   - Student ko kuch karna nahi padta
+   - Kisi bhi page pe ho, tracking chalti rahegi
+
+3. **Real-time Updates**
+   - Teacher dashboard pe live count
+   - Last seen time update
+   - Total minutes auto-calculate
+
+4. **Smart Auto-Exit**
+   - Classroom se bahar → Auto exit
+   - Phone off → Auto exit (5 min timeout)
+   - Session end → Auto exit
+
+5. **No Duplicate Entries**
+   - Ek session mein ek hi entry
+   - Database constraint se protected
+
+### 📊 **Teacher Can See:**
+- Live student count (auto-refreshing every 5 seconds)
+- Last seen time for each student
+- Total minutes in class
+- Entry/exit status
+
+### 🔒 **Security:**
+- Location validation (currently disabled for demo)
+- Session-based tracking
+- Automatic timeout handling
+
+**Demo ke liye perfect hai! Students ko sirf ek baar scan karna hai, baaki sab automatic hai.** 🚀

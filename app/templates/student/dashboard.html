@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
+    <h3 class="mb-0">Student Dashboard</h3>
+    <a href="{{ url_for('student.scan') }}" class="btn btn-primary">Scan QR</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-lg-6">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <h5>Active Classes</h5>
+                {% if active_sessions %}
+                    {% for session in active_sessions %}
+                        <div class="border rounded p-2 mb-2">
+                            <div class="fw-semibold">{{ session.title }}</div>
+                            <div class="small text-muted">{{ session.room }}</div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">No active classes currently.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-6">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <h5>Attendance Minutes by Date</h5>
+                <canvas id="studentChart" height="160"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <h5>Recent Attendance</h5>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Class</th>
+                    <th>Entry</th>
+                    <th>Exit</th>
+                    <th>Total Minutes</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for rec in my_records %}
+                    <tr>
+                        <td>{{ rec.session.title }}</td>
+                        <td>{{ rec.entry_time }}</td>
+                        <td>{{ rec.exit_time or '-' }}</td>
+                        <td>{{ "%.2f"|format(rec.total_minutes) }}</td>
+                        <td>{{ rec.status }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="5" class="text-muted">No records yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.studentChartData = {
+    labels: {{ chart_labels | tojson }},
+    values: {{ chart_values | tojson }}
+};
+</script>
+{% endblock %}

@@ -1,0 +1,5 @@
+SECRET_KEY=change-this-to-a-random-secret
+DATABASE_URL=sqlite:///attendance.db
+CLASSROOM_RADIUS_METERS=80
+PRESENCE_TIMEOUT_MINUTES=5
+APP_BASE_URL=http://10.11.98.149:5000

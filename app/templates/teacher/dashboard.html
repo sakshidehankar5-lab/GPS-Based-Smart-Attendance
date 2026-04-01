@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Teacher Dashboard{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+    <h3 class="mb-0">Teacher/Admin Dashboard</h3>
+    <a class="btn btn-outline-secondary" href="{{ url_for('teacher.report') }}">View Reports</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6>Total Attendance Entries</h6>
+                <h2 class="mb-0" id="teacherTotalEntries">{{ total_entries }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6>Total Classroom Minutes</h6>
+                <h2 class="mb-0" id="teacherTotalMinutes">{{ total_minutes }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6>Active Session</h6>
+                <h5 class="mb-1" id="teacherActiveSessionTitle">{{ active_session.title if active_session else 'None' }}</h5>
+                <div class="small text-muted" id="teacherActiveSessionMeta">
+                    {% if active_session %}
+                        {{ active_session.room }} • <span class="badge text-bg-success">Live</span>
+                    {% else %}
+                        No active session
+                    {% endif %}
+                </div>
+                <div class="small mt-2" id="teacherActiveSessionCountWrap" {% if not active_session %}style="display:none"{% endif %}>
+                    Students marked: <strong id="teacherActiveSessionCount">{{ active_session.attendance_records|length if active_session else 0 }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-xl-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5>Start Class Session</h5>
+                <form method="post" action="{{ url_for('teacher.start_session') }}">
+                    <div class="mb-2"><input name="title" class="form-control" placeholder="Class title" required></div>
+                    <div class="mb-2"><input name="room" class="form-control" placeholder="Room / Section" required></div>
+                    <div class="mb-2"><input name="latitude" step="any" class="form-control" placeholder="Class latitude" required></div>
+                    <div class="mb-2"><input name="longitude" step="any" class="form-control" placeholder="Class longitude" required></div>
+                    <div class="mb-3"><input name="radius_meters" type="number" class="form-control" placeholder="Radius meters (optional)"></div>
+                    <button class="btn btn-primary w-100">Start & Generate QR</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-7">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <h5>Session Attendance Trend</h5>
+                <canvas id="teacherChart" height="120"></canvas>
+            </div>
+        </div>
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5>Recent Sessions</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead><tr><th>Title</th><th>Room</th><th>Started</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody>
+                        {% for s in sessions %}
+                            <tr>
+                                <td>{{ s.title }}</td>
+                                <td>{{ s.room }}</td>
+                                <td>{{ s.started_at }}</td>
+                                <td>{{ "Active" if s.is_active else "Closed" }}</td>
+                                <td class="d-flex flex-wrap gap-1">
+                                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('teacher.session_qr', session_id=s.id) }}">QR</a>
+                                    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('teacher.live_students', session_id=s.id) }}">Live</a>
+                                    {% if s.is_active %}
+                                    <form method="post" action="{{ url_for('teacher.end_session', session_id=s.id) }}">
+                                        <button class="btn btn-sm btn-outline-danger">End</button>
+                                    </form>
+                                    {% endif %}
+                                    <form method="post" action="{{ url_for('teacher.delete_session', session_id=s.id) }}" onsubmit="return confirm('Delete this session and attendance records?');">
+                                        <button class="btn btn-sm btn-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="5" class="text-muted">No sessions yet.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.teacherChartData = {
+    labels: {{ chart_labels | tojson }},
+    values: {{ chart_values | tojson }}
+};
+window.teacherActiveSessionId = {{ active_session.id if active_session else 'null' }};
+</script>
+{% endblock %}

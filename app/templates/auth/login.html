@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Login | Smart Attendance{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-5">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <div class="display-4 mb-3">📱</div>
+                    <h3 class="mb-2">Smart Attendance System</h3>
+                    <p class="text-muted">GPS-Based Real-Time Attendance Tracking</p>
+                </div>
+                
+                <form method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Email Address</label>
+                        <input name="email" type="email" class="form-control form-control-lg" placeholder="your@email.com" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Password</label>
+                        <input name="password" type="password" class="form-control form-control-lg" placeholder="Enter password" required>
+                    </div>
+                    <button class="btn btn-primary btn-lg w-100 mb-3" type="submit">
+                        🔐 Login to Dashboard
+                    </button>
+                </form>
+                
+                <div class="text-center">
+                    <p class="text-muted small mb-2">Don't have an account?</p>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary">
+                        Create New Account
+                    </a>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="text-center">
+                    <small class="text-muted">
+                        <strong>Demo Features:</strong><br>
+                        ✅ QR Code Scanning • ✅ Live Tracking • ✅ Real-time Reports
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

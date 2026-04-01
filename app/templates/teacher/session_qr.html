@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Session QR{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body p-4">
+                <h4>{{ session.title }}</h4>
+                <p class="text-muted mb-1">Room: {{ session.room }}</p>
+                
+                <!-- Live Student Counter -->
+                {% if session.is_active %}
+                <div class="alert alert-success mb-3" role="alert">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>🟢 Session Active</strong>
+                            <div class="small">Students are scanning now</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="display-6 mb-0" id="qrPageStudentCount" style="transition: all 0.3s ease;">{{ session.attendance_records|length }}</div>
+                            <div class="small">Students Marked</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Location Info & Edit -->
+                <details class="mb-3">
+                    <summary class="btn btn-sm btn-outline-secondary">📍 Location Settings</summary>
+                    <div class="mt-3 text-start mx-auto" style="max-width: 500px;">
+                        <div class="alert alert-info small mb-3">
+                            <strong>Current Location:</strong><br>
+                            Lat: {{ "%.6f"|format(session.latitude) }}, Lon: {{ "%.6f"|format(session.longitude) }}<br>
+                            Radius: {{ session.radius_meters }}m
+                        </div>
+                        <form method="post" action="{{ url_for('teacher.update_session_location', session_id=session.id) }}">
+                            <div class="mb-2">
+                                <label class="form-label small">Latitude</label>
+                                <input name="latitude" type="number" step="any" class="form-control" value="{{ session.latitude }}" required>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Longitude</label>
+                                <input name="longitude" type="number" step="any" class="form-control" value="{{ session.longitude }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small">Radius (meters)</label>
+                                <input name="radius_meters" type="number" class="form-control" value="{{ session.radius_meters }}" required>
+                            </div>
+                            <button type="submit" class="btn btn-warning w-100">Update Location</button>
+                        </form>
+                    </div>
+                </details>
+                {% endif %}
+                
+                <p class="text-muted small">Students scan this QR to open session link and mark attendance.</p>
+                <img src="data:image/png;base64,{{ qr_data }}" alt="QR code" class="img-fluid qr-img mb-3">
+                <div class="text-start mx-auto" style="max-width: 640px;">
+                    <div class="mb-2">
+                        <div class="small fw-semibold mb-1">Scan Link</div>
+                        <div class="d-flex gap-2 align-items-start">
+                            <code class="flex-grow-1 text-break" id="scanLinkText">{{ scan_url }}</code>
+                            <button class="btn btn-sm btn-outline-primary" type="button" onclick="copyTextFrom('scanLinkText')">Copy</button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="small fw-semibold mb-1">QR Token (manual)</div>
+                        <div class="d-flex gap-2 align-items-start">
+                            <code class="flex-grow-1 text-break" id="qrTokenText">{{ session.qr_token }}</code>
+                            <button class="btn btn-sm btn-outline-primary" type="button" onclick="copyTextFrom('qrTokenText')">Copy</button>
+                        </div>
+                        <div class="form-text">Use token only if camera scan is blocked; best is scan link.</div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 justify-content-center flex-wrap">
+                    <a class="btn btn-outline-secondary" href="{{ url_for('teacher.live_students', session_id=session.id) }}">Live View</a>
+                    <a class="btn btn-primary" href="{{ url_for('teacher.dashboard') }}">Back Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function copyTextFrom(elementId) {
+  const el = document.getElementById(elementId);
+  const text = (el && (el.innerText || el.textContent) || "").trim();
+  if (!text) return;
+
+  // Try modern clipboard API (works best on HTTPS).
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      alert("Copied!");
+      return;
+    }
+  } catch (e) {}
+
+  // Fallback: hidden textarea + execCommand copy (works on many HTTP contexts).
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "-1000px";
+    ta.style.left = "-1000px";
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    if (ok) {
+      alert("Copied!");
+      return;
+    }
+  } catch (e) {}
+
+  // Last resort: prompt so user can manually copy.
+  window.prompt("Copy this text:", text);
+}
+
+// Auto-refresh student count on QR page
+document.addEventListener('DOMContentLoaded', function() {
+    const countEl = document.getElementById('qrPageStudentCount');
+    if (!countEl) return;
+    
+    const sessionId = {{ session.id }};
+    let lastCount = parseInt(countEl.textContent);
+    
+    // Create audio context for notification sound
+    const playNotification = () => {
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        } catch (e) {
+            console.log('Audio notification not available');
+        }
+    };
+    
+    const updateCount = async () => {
+        try {
+            const res = await fetch(`/api/session/${sessionId}/live`);
+            const data = await res.json();
+            if (data.students) {
+                const newCount = data.students.length;
+                
+                countEl.textContent = newCount;
+                
+                // Animate and notify if count increased
+                if (newCount > lastCount) {
+                    countEl.style.transform = 'scale(1.3)';
+                    countEl.style.color = '#28a745';
+                    playNotification();
+                    setTimeout(() => {
+                        countEl.style.transform = 'scale(1)';
+                        countEl.style.color = '';
+                    }, 300);
+                }
+                
+                lastCount = newCount;
+            }
+        } catch (e) {
+            console.error('Failed to update count:', e);
+        }
+    };
+    
+    // Update every 3 seconds
+    setInterval(updateCount, 3000);
+});
+</script>
+{% endblock %}

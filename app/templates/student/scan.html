@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Scan QR{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h4>Mark Attendance</h4>
+                <p class="text-muted small">
+                    Scan teacher QR directly, or paste token manually.
+                </p>
+                <div id="qrScanner" class="mb-3"></div>
+                <form id="scanForm">
+                    <div class="mb-3">
+                        <label class="form-label">QR Token</label>
+                        <input class="form-control" id="qrToken" placeholder="Paste scanned token" required>
+                    </div>
+                    <button class="btn btn-primary w-100" type="submit">Mark Entry</button>
+                </form>
+                <hr>
+                <div id="scanResult" class="small"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

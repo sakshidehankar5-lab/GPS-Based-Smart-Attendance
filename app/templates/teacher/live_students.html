@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Live Students{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-0">{{ session.title }} - Live Class</h3>
+        <small class="text-muted">Room: {{ session.room }}</small>
+    </div>
+    <form method="post" action="{{ url_for('teacher.issue_presence_check', session_id=session.id) }}">
+        <button class="btn btn-warning">Random Presence Check</button>
+    </form>
+</div>
+
+<!-- Live Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted mb-2">Total Students</h6>
+                <h2 class="mb-0 text-primary" id="totalStudentsCount">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted mb-2">In Class</h6>
+                <h2 class="mb-0 text-success" id="inClassCount">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted mb-2">Exited</h6>
+                <h2 class="mb-0 text-secondary" id="exitedCount">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted mb-2">Last Update</h6>
+                <div class="mb-0 small" id="lastUpdateTime">Just now</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Students Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Student Attendance</h5>
+            <div class="d-flex gap-2 align-items-center">
+                <span class="badge bg-success" id="liveIndicator">● LIVE</span>
+                <small class="text-muted">Auto-refresh every 5s</small>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="liveStudentsTable" data-session-id="{{ session.id }}">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Entry Time</th>
+                    <th>Last Seen</th>
+                    <th>Status</th>
+                    <th>Minutes</th>
+                </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                            Loading students...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+#liveIndicator {
+    animation: pulse 2s ease-in-out infinite;
+}
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+.status-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+</style>
+{% endblock %}
