@@ -39,6 +39,11 @@ def create_app() -> Flask:
     def load_user(user_id: str):
         return User.query.get(int(user_id))
 
+    # Auto-create database tables on startup (for Render deployment)
+    with app.app_context():
+        db.create_all()
+        print("✅ Database tables created/verified")
+
     @app.cli.command("create-admin")
     def create_admin():
         from app.models import User
