@@ -13,6 +13,10 @@ class Config:
     
     SQLALCHEMY_DATABASE_URI = database_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # App Base URL - Optional, auto-detected if not set
+    # For production, set this to your deployed URL (e.g., https://your-app.onrender.com)
+    # If not set, the app will auto-detect from request headers
     APP_BASE_URL = os.getenv("APP_BASE_URL", "").strip()
 
     # Classroom radius in meters for location validation.

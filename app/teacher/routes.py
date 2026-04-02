@@ -139,14 +139,25 @@ def session_qr(session_id: int):
     if session.teacher_id != current_user.id:
         flash("Unauthorized access.", "danger")
         return redirect(url_for("teacher.dashboard"))
+    
     scan_path = url_for("auth.scan_session", session_id=session.id)
-    app_base_url = current_app.config.get("APP_BASE_URL", "")
+    
+    # Get base URL from config or auto-detect from request
+    app_base_url = current_app.config.get("APP_BASE_URL", "").strip()
+    
     if app_base_url:
+        # Use configured base URL (for production deployment)
         if not app_base_url.endswith("/"):
             app_base_url = f"{app_base_url}/"
         scan_url = urljoin(app_base_url, scan_path.lstrip("/"))
     else:
-        scan_url = url_for("auth.scan_session", session_id=session.id, _external=True)
+        # Auto-detect from current request (works for Render/Railway)
+        from flask import request
+        # Get the scheme (http/https) and host from the request
+        scheme = request.headers.get('X-Forwarded-Proto', request.scheme)
+        host = request.headers.get('X-Forwarded-Host', request.host)
+        scan_url = f"{scheme}://{host}{scan_path}"
+    
     qr_data = qr_base64_for_payload(scan_url)
     return render_template(
         "teacher/session_qr.html",

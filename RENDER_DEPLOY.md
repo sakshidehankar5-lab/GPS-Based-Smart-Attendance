@@ -55,6 +55,8 @@ PRESENCE_TIMEOUT_MINUTES = 5
 DATABASE_URL = sqlite:///attendance.db
 ```
 
+**Note:** `APP_BASE_URL` is NOT needed - the app auto-detects the correct URL from Render!
+
 **To generate SECRET_KEY:**
 ```python
 import secrets
