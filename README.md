@@ -102,6 +102,7 @@ Smart attendance systems using GPS & real-time validation can **eliminate manual
 
 ---
 
+
 💬 I’d love your feedback!
 ⭐ Star the repo if you like it
 🤝 Open to collaboration
